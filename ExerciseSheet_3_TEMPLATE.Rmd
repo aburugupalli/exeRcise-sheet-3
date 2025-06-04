@@ -182,6 +182,74 @@ c)  Load the `public_response` dataframe into R. Convert the
     levels are defined in ascending order, from the lowest to the
     highest score. Combine `public_response` with the `pixar_films`
     dataset using an appropriate merge variable.
+    
+```{r}
+
+# 1. Load the public_response dataset
+public_response <- tuesdata$public_response
+
+# 2. Examine the structure of public_response
+cat("=== PUBLIC_RESPONSE DATASET STRUCTURE ===\n")
+str(public_response)
+head(public_response)
+
+# 3. Examine cinema_score variable
+cat("\n=== CINEMA_SCORE ANALYSIS ===\n")
+cat("Unique values in cinema_score:\n")
+print(unique(public_response$cinema_score))
+cat("\nFrequency table:\n")
+print(table(public_response$cinema_score))
+
+# 4. Convert cinema_score to ordered factor (ascending order: lowest to highest)
+public_response$cinema_score_factor <- factor(
+  public_response$cinema_score,
+  levels = c("F", "D", "D+", "C-", "C", "C+", "B-", "B", "B+", "A-", "A", "A+"),
+  ordered = TRUE
+)
+
+# 5. Verify the factor conversion
+cat("\n=== FACTOR CONVERSION VERIFICATION ===\n")
+cat("Factor summary:\n")
+print(summary(public_response$cinema_score_factor))
+cat("Is ordered:", is.ordered(public_response$cinema_score_factor), "\n")
+cat("Factor levels:", paste(levels(public_response$cinema_score_factor), collapse = " < "), "\n")
+
+# 6. Identify merge variable by checking column names
+cat("\n=== IDENTIFYING MERGE VARIABLE ===\n")
+cat("Columns in pixar_clean:\n")
+print(colnames(pixar_clean))
+cat("Columns in public_response:\n")
+print(colnames(public_response))
+
+# 7. Merge the datasets (using appropriate common variable)
+# Most likely merge variable is 'film' (film title)
+combined_data <- merge(
+  pixar_clean, 
+  public_response, 
+  by = "film",           # Common variable (adjust if different)
+  all.x = TRUE          # Left join: keep all Pixar films
+)
+
+# 8. Examine the merged dataset
+cat("\n=== MERGED DATASET ANALYSIS ===\n")
+cat("Original pixar_clean rows:", nrow(pixar_clean), "\n")
+cat("Public_response rows:", nrow(public_response), "\n")
+cat("Combined_data rows:", nrow(combined_data), "\n")
+cat("Successful matches:", sum(!is.na(combined_data$cinema_score_factor)), "\n")
+
+# 9. Display structure and sample of merged data
+str(combined_data)
+head(combined_data)
+
+# 10. Check for films without public response data
+films_without_scores <- combined_data[is.na(combined_data$cinema_score), "film"]
+if(length(films_without_scores) > 0) {
+  cat("\nFilms without cinema scores:\n")
+  print(films_without_scores)
+}
+
+```
+    
 
 d)  Choose one of the variables representing the public response and
     create a bar plot for the films belonging to a series. Here are the
