@@ -265,6 +265,45 @@ d)  Choose one of the variables representing the public response and
 
     What do you notice when comparing the scores of the films in a
     series? Do you see any patterns?
+    
+```{r}
+
+library(ggplot2)
+library(dplyr)
+
+# Filter for series films and order by release date
+series_data <- combined_data %>%
+  filter(series != "Standalone") %>%
+  arrange(series, release_date)
+
+# Convert cinema_score to numeric for plotting
+score_levels <- c("F", "D", "D+", "C-", "C", "C+", "B-", "B", "B+", "A-", "A", "A+")
+series_data$score_numeric <- as.numeric(factor(series_data$cinema_score_factor, levels = score_levels))
+
+# Create the grouped bar plot
+ggplot(series_data, aes(x = series, y = score_numeric, fill = film)) +
+  geom_col(position = position_dodge(width = 0.8), 
+           color = "black", alpha = 0.8) +
+  geom_text(aes(label = cinema_score), 
+            position = position_dodge(width = 0.8),
+            vjust = -0.5, fontweight = "bold") +
+  scale_y_continuous(breaks = 1:12, labels = score_levels, limits = c(0, 13)) +
+  labs(
+    title = "CinemaScore Ratings for Pixar Film Series",
+    subtitle = "Films ordered by release date within each series",
+    x = "Film Series",
+    y = "CinemaScore Rating",
+    fill = "Film"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold"),
+    axis.title = element_text(size = 12, face = "bold"),
+    legend.position = "bottom"
+  )
+
+```
+    
 
 ## Exercise 4: Open Analysis (4 points)
 
