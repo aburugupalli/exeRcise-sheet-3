@@ -24,6 +24,18 @@ output: distill::distill_article
     **not** as a zip archive.
 -   Submission format is HTML. Other formats will lead to a deduction of
     points.
+    
+```{r}
+
+# Setup-Chunk
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+library(knitr)
+library(broom)
+library(easystats)
+
+```
 
 ## Exercise 1: Initializing git (4 Points)
 
@@ -92,6 +104,43 @@ a)  Load the `pixar_films` dataset into R. Clean the dataset by removing
     films without a title. Inspect the variable `film_rating`. What are
     the possible values and what do they mean? Create a factor variable
     for the film rating. Why is this appropriate?
+    
+```{r pixar}
+
+# a) Datensatz laden und bereinigen
+library(tidytuesdayR)
+
+# Datensatz laden
+tuesdata <- tidytuesdayR::tt_load(2025, week = 10)
+pixar_films <- tuesdata$pixar_films
+
+print(colnames(pixar_films))
+
+# Bereinigen - Filme ohne Titel entfernen
+pixar_clean <- pixar_films %>%
+  filter(!is.na(film), film != "", film != "NA")
+
+# Inspektion der film_rating Variable
+unique(pixar_clean$film_rating)
+table(pixar_clean$film_rating)
+
+# Faktor-Variable erstellen
+pixar_clean$film_rating_factor <- factor(
+  pixar_clean$film_rating,
+  levels = c("G", "PG", "N/A"),
+  ordered = TRUE
+)
+
+summary(pixar_clean$film_rating_factor)
+
+
+```
+    
+    G: Suitable for all age groups - no material that parents would consider objectionable for children
+    PG: Parental guidance recommended - some content may be unsuitable for children
+    N/A: No rating available
+    
+    Why Factor Variable? Even though film ratings are categories, not numbers they still have a hierarchy among them selves.
 
 <!-- -->
 
