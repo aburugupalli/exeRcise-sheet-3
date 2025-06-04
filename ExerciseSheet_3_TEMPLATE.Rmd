@@ -317,20 +317,108 @@ a)  Go to <https://github.com/owid/owid-datasets/tree/master/datasets>
 b)  Download the dataset and track it in git.
 c)  Put the name / title of the dataset and a link to it below.
 
--   Dataset Name: ...
--   Link: <https://github.com/owid/owid-datasets/>...
+-   Dataset Name: Airline hijacking
+-   Link: <https://github.com/owid/owid-datasets/tree/master/datasets/Airline%20hijacking%20-%20Aviation%20Safety%20Network>...
 
 d)  Come up with a (research) question you want to answer with the data
     and briefly explain why you believe this is an interesting question
     within one sentence. It should be a question that can be answered
     with the dataset and using R.
+    
+    Did the introduction of enhanced airport security measures following major hijacking incidents lead to a measurable decline in both the frequency and lethality of airline hijackings, and can we identify specific turning points in the time series data that correspond to known security policy changes?
+    
 e)  Use R to answer your chosen question. Please limit your analysis to
     the functions and techniques we have covered so far in the course.
     You are **not expected** to use advanced statistical models or
     external packages which haven't been introduced.
+    
+```{r}
+
+# Load the dataset
+data <- read.csv("data/Airline hijacking - Aviation Safety Network.csv")
+
+# Clean column names for easier handling
+colnames(data) <- c("Entity", "Year", "Hijackings", "Fatalities")
+
+# Calculate basic statistics by decades to identify trends
+data$Decade <- floor(data$Year / 10) * 10
+decade_stats <- aggregate(cbind(Hijackings, Fatalities) ~ Decade, data = data, FUN = mean)
+print("Average hijackings and fatalities by decade:")
+print(decade_stats)
+
+# Calculate fatality rate (fatalities per hijacking) to assess lethality changes
+data$Fatality_Rate <- ifelse(data$Hijackings > 0, data$Fatalities / data$Hijackings, 0)
+
+# Compare pre and post major security implementation periods
+# Using 1973 as a key turning point (introduction of mandatory screening)
+pre_1973 <- data[data$Year < 1973, ]
+post_1973 <- data[data$Year >= 1973, ]
+
+cat("Pre-1973 (before mandatory screening):\n")
+cat("Average hijackings per year:", mean(pre_1973$Hijackings), "\n")
+cat("Average fatalities per year:", mean(pre_1973$Fatalities), "\n")
+
+cat("\nPost-1973 (after mandatory screening):\n")
+cat("Average hijackings per year:", mean(post_1973$Hijackings), "\n")
+cat("Average fatalities per year:", mean(post_1973$Fatalities), "\n")
+
+# Test for significant difference using t-test
+hijacking_test <- t.test(pre_1973$Hijackings, post_1973$Hijackings)
+print("T-test results for hijackings before vs after 1973:")
+print(hijacking_test)
+
+# Analyze post-2001 period (enhanced security post-9/11)
+post_2001 <- data[data$Year >= 2001, ]
+cat("\nPost-2001 period (enhanced security post-9/11):\n")
+cat("Average hijackings per year:", mean(post_2001$Hijackings), "\n")
+cat("Average fatalities per year:", mean(post_2001$Fatalities), "\n")
+
+```
+    
+    
 f)  Create a meaningful plot / figure with the dataset. Make sure to
     provide a figure caption (via the chunk options / Rmarkdown) and
     correctly label the figure.
+    
+```{r main-plot, fig.cap="Figure 1: Airline hijackings and fatalities over time (1942-2014) showing the impact of major security policy implementations. The blue dashed line marks 1973 when mandatory passenger screening was introduced, and the green dashed line marks 2001 when enhanced security measures were implemented following 9/11. The orange dashed line shows the smoothed trend for hijackings, clearly demonstrating the decline following security interventions.", fig.width=12, fig.height=8}
+
+plot(data$Year, data$Hijackings, 
+     type = "l", 
+     lwd = 2, 
+     col = "red",
+     xlab = "Year", 
+     ylab = "Count",
+     main = "Airline Hijackings and Fatalities: Impact of Security Measures (1942-2014)",
+     ylim = c(0, max(c(data$Hijackings, data$Fatalities))))
+
+# Add fatalities line
+lines(data$Year, data$Fatalities, lwd = 2, col = "darkred")
+
+# Add milestone lines for key security implementations
+abline(v = 1973, col = "blue", lty = 2, lwd = 2)    # Mandatory screening
+abline(v = 2001, col = "green", lty = 2, lwd = 2)   # Post-9/11 security
+
+# Add text annotations
+text(1973, max(data$Hijackings) * 0.9, "Mandatory\nScreening\n(1973)", 
+     pos = 4, cex = 0.8, col = "blue")
+text(2001, max(data$Hijackings) * 0.8, "Enhanced\nSecurity\n(2001)", 
+     pos = 4, cex = 0.8, col = "green")
+
+# Add smooth trend line for hijackings
+hijack_smooth <- lowess(data$Year, data$Hijackings, f = 0.3)
+lines(hijack_smooth$x, hijack_smooth$y, col = "orange", lwd = 3, lty = 3)
+
+# Add legend
+legend("topright", 
+       legend = c("Number of Hijackings", "Number of Fatalities", 
+                  "Hijacking Trend", "Security Milestones"),
+       col = c("red", "darkred", "orange", "blue"),
+       lty = c(1, 1, 3, 2),
+       lwd = c(2, 2, 3, 2),
+       cex = 0.9)
+
+```
+    
 
 ## Final Note
 
